@@ -1,6 +1,7 @@
 import sqlite3
 from typing import List, Dict, Any, Union
 import os
+import re
 
 # Database configuration
 DATABASE_PATH = os.getenv('DATABASE_PATH', 'sql_runner.db')
@@ -9,7 +10,7 @@ DATABASE_PATH = os.getenv('DATABASE_PATH', 'sql_runner.db')
 def get_db_connection():
     """Create and return a database connection"""
     conn = sqlite3.connect(DATABASE_PATH)
-    conn.row_factory = sqlite3.Row 
+    conn.row_factory = sqlite3.Row  # Access columns by name
     return conn
 
 
@@ -28,6 +29,7 @@ def execute_query(query: str) -> Union[List[Dict[str, Any]], Dict[str, str]]:
         
     Returns:
         List of dictionaries for SELECT queries
+        Dictionary with success message for DDL/DML queries
         Dictionary with error message if query fails
     """
     conn = get_db_connection()
@@ -36,19 +38,93 @@ def execute_query(query: str) -> Union[List[Dict[str, Any]], Dict[str, str]]:
     try:
         # Remove any trailing semicolons and whitespace
         query = query.strip().rstrip(';')
+        query_upper = query.strip().upper()
         
         cursor.execute(query)
         
         # Check if it's a SELECT query
-        if query.strip().upper().startswith('SELECT'):
+        if query_upper.startswith('SELECT'):
             results = cursor.fetchall()
             return [dict(row) for row in results]
+        
+        # For CREATE TABLE queries
+        elif query_upper.startswith('CREATE TABLE'):
+            conn.commit()
+            # Extract table name
+            match = re.search(r'CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?([^\s(]+)', query_upper)
+            table_name = match.group(1) if match else "table"
+            return [{
+                "message": f"Table '{table_name}' created successfully!",
+                "type": "create_table",
+                "affected_rows": 0
+            }]
+        
+        # For CREATE INDEX queries
+        elif query_upper.startswith('CREATE INDEX') or query_upper.startswith('CREATE UNIQUE INDEX'):
+            conn.commit()
+            return [{
+                "message": "Index created successfully!",
+                "type": "create_index",
+                "affected_rows": 0
+            }]
+        
+        # For DROP TABLE queries
+        elif query_upper.startswith('DROP TABLE'):
+            conn.commit()
+            match = re.search(r'DROP\s+TABLE\s+(?:IF\s+EXISTS\s+)?([^\s;]+)', query_upper)
+            table_name = match.group(1) if match else "table"
+            return [{
+                "message": f"Table '{table_name}' dropped successfully!",
+                "type": "drop_table",
+                "affected_rows": 0
+            }]
+        
+        # For ALTER TABLE queries
+        elif query_upper.startswith('ALTER TABLE'):
+            conn.commit()
+            return [{
+                "message": "Table altered successfully!",
+                "type": "alter_table",
+                "affected_rows": 0
+            }]
+        
+        # For INSERT queries
+        elif query_upper.startswith('INSERT'):
+            conn.commit()
+            affected_rows = cursor.rowcount
+            return [{
+                "message": f"Successfully inserted {affected_rows} row(s)!",
+                "type": "insert",
+                "affected_rows": affected_rows
+            }]
+        
+        # For UPDATE queries
+        elif query_upper.startswith('UPDATE'):
+            conn.commit()
+            affected_rows = cursor.rowcount
+            return [{
+                "message": f"Successfully updated {affected_rows} row(s)!",
+                "type": "update",
+                "affected_rows": affected_rows
+            }]
+        
+        # For DELETE queries
+        elif query_upper.startswith('DELETE'):
+            conn.commit()
+            affected_rows = cursor.rowcount
+            return [{
+                "message": f"Successfully deleted {affected_rows} row(s)!",
+                "type": "delete",
+                "affected_rows": affected_rows
+            }]
+        
+        # For other queries
         else:
-            # For INSERT, UPDATE, DELETE queries
             conn.commit()
             affected_rows = cursor.rowcount
             return [{
                 "message": f"Query executed successfully. {affected_rows} row(s) affected.",
+                "type": "other",
                 "affected_rows": affected_rows
             }]
             
@@ -154,15 +230,18 @@ def initialize_database():
             );
         """)
         
-        # Insert sample customers
-        cursor.execute("""
-            INSERT INTO Customers (first_name, last_name, age, country) VALUES
-            ('John', 'Doe', 30, 'USA'),
-            ('Robert', 'Luna', 22, 'USA'),
-            ('David', 'Robinson', 25, 'UK'),
-            ('John', 'Reinhardt', 22, 'UK'),
-            ('Betty', 'Doe', 28, 'UAE');
-        """)
+        # Check if data already exists
+        cursor.execute("SELECT COUNT(*) FROM Customers")
+        if cursor.fetchone()[0] == 0:
+            # Insert sample customers
+            cursor.execute("""
+                INSERT INTO Customers (first_name, last_name, age, country) VALUES
+                ('John', 'Doe', 31, 'USA'),
+                ('Robert', 'Luna', 22, 'USA'),
+                ('David', 'Robinson', 22, 'UK'),
+                ('John', 'Reinhardt', 25, 'UK'),
+                ('Betty', 'Doe', 28, 'UAE');
+            """)
         
         # Create Orders table
         cursor.execute("""
@@ -175,15 +254,17 @@ def initialize_database():
             );
         """)
         
-        # Insert sample orders
-        cursor.execute("""
-            INSERT INTO Orders (item, amount, customer_id) VALUES
-            ('Keyboard', 400, 4),
-            ('Mouse', 300, 4),
-            ('Monitor', 12000, 3),
-            ('Keyboard', 400, 1),
-            ('Mousepad', 250, 2);
-        """)
+        cursor.execute("SELECT COUNT(*) FROM Orders")
+        if cursor.fetchone()[0] == 0:
+            # Insert sample orders
+            cursor.execute("""
+                INSERT INTO Orders (item, amount, customer_id) VALUES
+                ('Keyboard', 400, 4),
+                ('Mouse', 300, 4),
+                ('Monitor', 12000, 3),
+                ('Keyboard', 400, 1),
+                ('Mousepad', 250, 2);
+            """)
         
         # Create Shippings table
         cursor.execute("""
@@ -194,15 +275,17 @@ def initialize_database():
             );
         """)
         
-        # Insert sample shippings
-        cursor.execute("""
-            INSERT INTO Shippings (status, customer) VALUES
-            ('Pending', 2),
-            ('Pending', 4),
-            ('Delivered', 3),
-            ('Pending', 5),
-            ('Delivered', 1);
-        """)
+        cursor.execute("SELECT COUNT(*) FROM Shippings")
+        if cursor.fetchone()[0] == 0:
+            # Insert sample shippings
+            cursor.execute("""
+                INSERT INTO Shippings (status, customer) VALUES
+                ('Pending', 2),
+                ('Pending', 4),
+                ('Delivered', 3),
+                ('Pending', 5),
+                ('Delivered', 1);
+            """)
         
         conn.commit()
         print("Database initialized successfully!")
