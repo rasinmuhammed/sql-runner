@@ -44,6 +44,16 @@ export const login = async (username, password) => {
   return response.data;
 };
 
+export const signup = async (userData) => {
+  const response = await api.post('/auth/signup', userData);
+  return response.data;
+};
+
+export const getCurrentUser = async () => {
+  const response = await api.get('/auth/me');
+  return response.data;
+};
+
 // Query APIs
 export const executeQuery = async (query) => {
   const response = await api.post('/query/execute', { query });

@@ -1,7 +1,8 @@
 import sqlite3
-from typing import List, Dict, Any, Union
+from typing import List, Dict, Any, Union, Optional
 import os
 import re
+from datetime import datetime
 
 # Database configuration
 DATABASE_PATH = os.getenv('DATABASE_PATH', 'sql_runner.db')
@@ -141,14 +142,14 @@ def get_table_names() -> List[str]:
     Get list of all tables in the database
     
     Returns:
-        List of table names
+        List of table names (excluding users table)
     """
     conn = get_db_connection()
     cursor = conn.cursor()
     
     try:
         cursor.execute(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name;"
+            "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name != 'users' ORDER BY name;"
         )
         tables = [row[0] for row in cursor.fetchall()]
         return tables
@@ -210,6 +211,112 @@ def get_table_info(table_name: str) -> Dict[str, Any]:
         close_db_connection(conn)
 
 
+# User Management Functions
+
+def create_user(username: str, email: str, full_name: str, hashed_password: str) -> Optional[Dict[str, Any]]:
+    """
+    Create a new user in the database
+    
+    Args:
+        username: Unique username
+        email: User's email address
+        full_name: User's full name
+        hashed_password: Hashed password
+        
+    Returns:
+        Dictionary containing user data if successful, None otherwise
+    """
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute("""
+            INSERT INTO users (username, email, full_name, hashed_password, created_at, is_active)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (username, email, full_name, hashed_password, datetime.utcnow().isoformat(), True))
+        
+        conn.commit()
+        
+        user_id = cursor.lastrowid
+        
+        return {
+            "user_id": user_id,
+            "username": username,
+            "email": email,
+            "full_name": full_name,
+            "created_at": datetime.utcnow().isoformat(),
+            "is_active": True
+        }
+        
+    except sqlite3.Error as e:
+        print(f"Error creating user: {str(e)}")
+        return None
+    finally:
+        close_db_connection(conn)
+
+
+def get_user_by_username(username: str) -> Optional[Dict[str, Any]]:
+    """
+    Get user by username
+    
+    Args:
+        username: Username to search for
+        
+    Returns:
+        Dictionary containing user data if found, None otherwise
+    """
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute(
+            "SELECT * FROM users WHERE username = ?",
+            (username,)
+        )
+        row = cursor.fetchone()
+        
+        if row:
+            return dict(row)
+        return None
+        
+    except sqlite3.Error as e:
+        print(f"Error fetching user: {str(e)}")
+        return None
+    finally:
+        close_db_connection(conn)
+
+
+def get_user_by_email(email: str) -> Optional[Dict[str, Any]]:
+    """
+    Get user by email
+    
+    Args:
+        email: Email to search for
+        
+    Returns:
+        Dictionary containing user data if found, None otherwise
+    """
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute(
+            "SELECT * FROM users WHERE email = ?",
+            (email,)
+        )
+        row = cursor.fetchone()
+        
+        if row:
+            return dict(row)
+        return None
+        
+    except sqlite3.Error as e:
+        print(f"Error fetching user: {str(e)}")
+        return None
+    finally:
+        close_db_connection(conn)
+
+
 def initialize_database():
     """
     Initialize the database with sample tables and data
@@ -219,6 +326,33 @@ def initialize_database():
     cursor = conn.cursor()
     
     try:
+        # Create users table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username VARCHAR(50) UNIQUE NOT NULL,
+                email VARCHAR(100),
+                full_name VARCHAR(100) NOT NULL,
+                hashed_password TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                is_active BOOLEAN DEFAULT 1
+            );
+        """)
+        
+        # Check if default admin user exists
+        cursor.execute("SELECT COUNT(*) FROM users WHERE username = 'admin'")
+        if cursor.fetchone()[0] == 0:
+            # Import password hashing
+            from passlib.context import CryptContext
+            pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+            
+            # Create default admin user
+            hashed_password = pwd_context.hash("admin123")
+            cursor.execute("""
+                INSERT INTO users (username, email, full_name, hashed_password, created_at, is_active)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, ("admin", "admin@sqlrunner.com", "Administrator", hashed_password, datetime.utcnow().isoformat(), True))
+        
         # Create Customers table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS Customers (
@@ -289,6 +423,7 @@ def initialize_database():
         
         conn.commit()
         print("Database initialized successfully!")
+        print("Default admin user created - Username: admin, Password: admin123")
         
     except sqlite3.Error as e:
         print(f"Error initializing database: {str(e)}")

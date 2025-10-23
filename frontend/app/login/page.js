@@ -1,16 +1,27 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { login } from '@/lib/api';
-import { Database, Lock, User, AlertCircle } from 'lucide-react';
+import { Database, Lock, User, AlertCircle, CheckCircle } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  useEffect(() => {
+    // Check if user just registered
+    if (searchParams.get('registered') === 'true') {
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 5000);
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -55,6 +66,17 @@ export default function LoginPage() {
           <p className="text-center text-violet-200 mb-8">
             Sign in to execute queries
           </p>
+
+          {/* Success Message */}
+          {showSuccess && (
+            <div className="mb-6 p-4 bg-green-500/20 border border-green-500/50 rounded-lg flex items-start gap-3 animate-fade-in">
+              <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm text-green-200 font-semibold">Account created successfully!</p>
+                <p className="text-xs text-green-300 mt-1">Please sign in with your credentials.</p>
+              </div>
+            </div>
+          )}
 
           {/* Error Message */}
           {error && (
@@ -116,6 +138,19 @@ export default function LoginPage() {
             </button>
           </form>
 
+          {/* Signup Link */}
+          <div className="mt-6 text-center">
+            <p className="text-violet-200 text-sm">
+              Don't have an account?{' '}
+              <Link
+                href="/signup"
+                className="text-violet-400 hover:text-violet-300 font-semibold underline transition-colors"
+              >
+                Create one here
+              </Link>
+            </p>
+          </div>
+
           {/* Demo Credentials */}
           <div className="mt-6 p-4 bg-violet-500/10 border border-violet-500/30 rounded-lg">
             <p className="text-xs text-violet-200 text-center mb-2 font-semibold">
@@ -148,6 +183,19 @@ export default function LoginPage() {
         }
         .animation-delay-4000 {
           animation-delay: 4s;
+        }
+        @keyframes fade-in {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.3s ease-out;
         }
       `}</style>
     </div>
