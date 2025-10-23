@@ -8,7 +8,7 @@ import TablesSidebar from '@/components/TablesSidebar';
 import QueryHistory from '@/components/QueryHistory';
 import ThemeToggle from '@/components/ThemeToggle';
 import { useTheme } from '@/contexts/ThemeContext';
-import { LogOut, Database, Clock, Menu, X, Sparkles } from 'lucide-react';
+import { LogOut, Database, Clock, Menu, X, Sparkles, History, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -16,8 +16,8 @@ export default function DashboardPage() {
   const [username, setUsername] = useState('');
   const [queryResults, setQueryResults] = useState(null);
   const [selectedTable, setSelectedTable] = useState(null);
-  const [showHistory, setShowHistory] = useState(false);
-  const [showSidebar, setShowSidebar] = useState(true);
+  const [showHistory, setShowHistory] = useState(true);
+  const [showTablesSidebar, setShowTablesSidebar] = useState(true);
   const [refreshHistory, setRefreshHistory] = useState(0);
   const [refreshTables, setRefreshTables] = useState(0);
 
@@ -59,7 +59,7 @@ export default function DashboardPage() {
   };
 
   const handleHistoryQuerySelect = (query) => {
-    setShowHistory(false);
+    // Query will be handled in QueryHistory component
   };
 
   return (
@@ -91,14 +91,15 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button
-                onClick={() => setShowSidebar(!showSidebar)}
-                className={`lg:hidden p-2 rounded-lg ${
+                onClick={() => setShowTablesSidebar(!showTablesSidebar)}
+                className={`p-2 rounded-lg ${
                   theme === 'dark'
                     ? 'hover:bg-white/10 text-white'
                     : 'hover:bg-gray-100 text-gray-700'
                 } transition-all duration-200 hover:scale-105`}
+                title={showTablesSidebar ? 'Hide tables' : 'Show tables'}
               >
-                {showSidebar ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                {showTablesSidebar ? <ChevronLeft className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
               
               <div className="flex items-center gap-3">
@@ -128,17 +129,18 @@ export default function DashboardPage() {
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setShowHistory(!showHistory)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200 hover:scale-105 border ${
                   showHistory
                     ? theme === 'dark'
-                      ? 'bg-violet-500/20 border-violet-500/50 text-white'
-                      : 'bg-violet-100 border-violet-200 text-violet-700'
+                      ? 'bg-violet-500/20 border-violet-500/50 text-white shadow-lg'
+                      : 'bg-violet-100 border-violet-200 text-violet-700 shadow-md'
                     : theme === 'dark'
-                    ? 'bg-white/10 hover:bg-white/20 text-white'
-                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                } transition-all duration-200 hover:scale-105 border border-transparent`}
+                    ? 'bg-white/10 hover:bg-white/20 text-white border-transparent'
+                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700 border-transparent'
+                }`}
+                title={showHistory ? 'Hide history' : 'Show history'}
               >
-                <Clock className="w-4 h-4" />
+                {showHistory ? <ChevronRight className="w-4 h-4" /> : <History className="w-4 h-4" />}
                 <span className="hidden sm:inline">History</span>
               </button>
 
@@ -158,19 +160,23 @@ export default function DashboardPage() {
 
       {/* Main Content */}
       <div className="flex h-[calc(100vh-73px)] relative">
-        {/* Sidebar */}
+        {/* Tables Sidebar */}
         <aside className={`${
-          showSidebar ? 'translate-x-0' : '-translate-x-full'
-        } lg:translate-x-0 fixed lg:relative z-40 w-80 h-full transition-transform duration-300 ease-in-out`}>
-          <TablesSidebar 
-            onTableSelect={handleTableSelect} 
-            refreshTrigger={refreshTables}
-          />
+          showTablesSidebar ? 'translate-x-0 w-80' : '-translate-x-full w-0'
+        } transition-all duration-300 ease-in-out overflow-hidden flex-shrink-0`}>
+          <div className="w-80">
+            <TablesSidebar 
+              onTableSelect={handleTableSelect} 
+              refreshTrigger={refreshTables}
+            />
+          </div>
         </aside>
 
         {/* Main Area */}
-        <main className="flex-1 overflow-auto relative">
-          <div className="p-6 space-y-6">
+        <main className={`flex-1 overflow-auto relative transition-all duration-300 ${
+          !showTablesSidebar && !showHistory ? 'max-w-full' : ''
+        }`}>
+          <div className="p-6 space-y-6 max-w-[1600px] mx-auto">
             {/* Query Editor */}
             <QueryEditor 
               onQueryExecuted={handleQueryExecuted}
@@ -183,24 +189,18 @@ export default function DashboardPage() {
         </main>
 
         {/* Query History Sidebar */}
-        {showHistory && (
-          <aside className="fixed right-0 top-[73px] h-[calc(100vh-73px)] w-80 z-40 animate-slide-in-right">
+        <aside className={`${
+          showHistory ? 'translate-x-0 w-96' : 'translate-x-full w-0'
+        } transition-all duration-300 ease-in-out overflow-hidden flex-shrink-0`}>
+          <div className="w-96 h-full">
             <QueryHistory 
               onClose={() => setShowHistory(false)}
               onQuerySelect={handleHistoryQuerySelect}
               refresh={refreshHistory}
             />
-          </aside>
-        )}
+          </div>
+        </aside>
       </div>
-
-      {/* Overlay for mobile */}
-      {showSidebar && (
-        <div
-          className="lg:hidden fixed inset-0 bg-black/50 z-30 backdrop-blur-sm animate-fade-in"
-          onClick={() => setShowSidebar(false)}
-        />
-      )}
 
       <style jsx>{`
         @keyframes blob {
@@ -216,30 +216,6 @@ export default function DashboardPage() {
         }
         .animation-delay-4000 {
           animation-delay: 4s;
-        }
-        @keyframes slide-in-right {
-          from {
-            transform: translateX(100%);
-            opacity: 0;
-          }
-          to {
-            transform: translateX(0);
-            opacity: 1;
-          }
-        }
-        .animate-slide-in-right {
-          animation: slide-in-right 0.3s ease-out;
-        }
-        @keyframes fade-in {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
-        }
-        .animate-fade-in {
-          animation: fade-in 0.2s ease-out;
         }
       `}</style>
     </div>

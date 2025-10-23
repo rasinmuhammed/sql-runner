@@ -13,6 +13,9 @@ from .database import (
     create_user,
     get_user_by_username,
     get_user_by_email,
+    save_query_history,
+    get_query_history,
+    clear_query_history,
 )
 from .models import UserCreate, UserLogin, User
 
@@ -39,9 +42,6 @@ app.add_middleware(
 )
 
 security = HTTPBearer()
-
-# Per-user in-memory query history
-query_history: Dict[str, List[Dict[str, Any]]] = {}
 
 
 # Pydantic response models
@@ -186,9 +186,6 @@ async def signup(user_data: UserCreate):
             detail="Failed to create user"
         )
     
-    # Initialize query history for new user
-    query_history[user_data.username] = []
-    
     logger.info(f"New user registered: {user_data.username}")
     
     return SignupResponse(
@@ -225,10 +222,6 @@ async def login(request: UserLogin):
     # Create access token
     access_token = create_access_token(data={"sub": request.username})
     
-    # Initialize query history if not exists
-    if request.username not in query_history:
-        query_history[request.username] = []
-    
     logger.info(f"User logged in: {request.username}")
     
     return LoginResponse(
@@ -257,16 +250,13 @@ async def execute_sql_query(request: QueryRequest, current_user: str = Depends(g
         
         # Handle error results
         if isinstance(result, dict) and "error" in result:
-            # Add failed query to history
-            query_history.setdefault(current_user, [])
-            query_history[current_user].insert(0, {
-                "query": request.query,
-                "timestamp": datetime.utcnow().isoformat(),
-                "success": False,
-                "error": result["error"]
-            })
-            # Keep only last 50 queries
-            query_history[current_user] = query_history[current_user][:50]
+            # Save failed query to database
+            save_query_history(
+                username=current_user,
+                query=request.query,
+                success=False,
+                error=result["error"]
+            )
             
             return QueryResponse(
                 success=False,
@@ -276,16 +266,15 @@ async def execute_sql_query(request: QueryRequest, current_user: str = Depends(g
         
         # Handle successful results
         columns = list(result[0].keys()) if result else []
+        rows_affected = len(result)
         
-        # Add successful query to history
-        query_history.setdefault(current_user, [])
-        query_history[current_user].insert(0, {
-            "query": request.query,
-            "timestamp": datetime.utcnow().isoformat(),
-            "success": True,
-            "rows_affected": len(result)
-        })
-        query_history[current_user] = query_history[current_user][:50]
+        # Save successful query to database
+        save_query_history(
+            username=current_user,
+            query=request.query,
+            success=True,
+            rows_affected=rows_affected
+        )
         
         return QueryResponse(
             success=True,
@@ -298,15 +287,13 @@ async def execute_sql_query(request: QueryRequest, current_user: str = Depends(g
         logger.exception("Unexpected error executing query")
         execution_time = (datetime.utcnow() - start_time).total_seconds()
         
-        # Add error to history
-        query_history.setdefault(current_user, [])
-        query_history[current_user].insert(0, {
-            "query": request.query,
-            "timestamp": datetime.utcnow().isoformat(),
-            "success": False,
-            "error": str(e)
-        })
-        query_history[current_user] = query_history[current_user][:50]
+        # Save error to database
+        save_query_history(
+            username=current_user,
+            query=request.query,
+            success=False,
+            error=str(e)
+        )
         
         return QueryResponse(
             success=False,
@@ -320,9 +307,10 @@ async def get_query_history_endpoint(current_user: str = Depends(get_current_use
     """
     Get query history for the current user
     
-    Returns the last 50 queries executed by the user.
+    Returns the last 50 queries executed by the user from the database.
     """
-    return query_history.get(current_user, [])
+    history = get_query_history(current_user, limit=50)
+    return history
 
 
 @app.delete("/query/history")
@@ -330,8 +318,15 @@ async def clear_query_history_endpoint(current_user: str = Depends(get_current_u
     """
     Clear query history for the current user
     """
-    query_history[current_user] = []
-    return {"message": "Query history cleared successfully"}
+    success = clear_query_history(current_user)
+    
+    if success:
+        return {"message": "Query history cleared successfully"}
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to clear query history"
+        )
 
 
 # Table management endpoints

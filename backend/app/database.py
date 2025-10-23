@@ -142,14 +142,14 @@ def get_table_names() -> List[str]:
     Get list of all tables in the database
     
     Returns:
-        List of table names (excluding users table)
+        List of table names (excluding users and query_history tables)
     """
     conn = get_db_connection()
     cursor = conn.cursor()
     
     try:
         cursor.execute(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name != 'users' ORDER BY name;"
+            "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT IN ('users', 'query_history') ORDER BY name;"
         )
         tables = [row[0] for row in cursor.fetchall()]
         return tables
@@ -317,6 +317,112 @@ def get_user_by_email(email: str) -> Optional[Dict[str, Any]]:
         close_db_connection(conn)
 
 
+# Query History Functions
+
+def save_query_history(username: str, query: str, success: bool, error: Optional[str] = None, rows_affected: Optional[int] = None) -> bool:
+    """
+    Save query to history
+    
+    Args:
+        username: Username who executed the query
+        query: SQL query string
+        success: Whether query was successful
+        error: Error message if query failed
+        rows_affected: Number of rows affected
+        
+    Returns:
+        True if saved successfully, False otherwise
+    """
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute("""
+            INSERT INTO query_history (username, query, success, error, rows_affected, timestamp)
+            VALUES (?, ?, ?, ?, ?, ?)
+        """, (username, query, success, error, rows_affected, datetime.utcnow().isoformat()))
+        
+        conn.commit()
+        return True
+        
+    except sqlite3.Error as e:
+        print(f"Error saving query history: {str(e)}")
+        return False
+    finally:
+        close_db_connection(conn)
+
+
+def get_query_history(username: str, limit: int = 50) -> List[Dict[str, Any]]:
+    """
+    Get query history for a user
+    
+    Args:
+        username: Username to get history for
+        limit: Maximum number of queries to return
+        
+    Returns:
+        List of query history items
+    """
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute("""
+            SELECT query, success, error, rows_affected, timestamp
+            FROM query_history
+            WHERE username = ?
+            ORDER BY timestamp DESC
+            LIMIT ?
+        """, (username, limit))
+        
+        results = []
+        for row in cursor.fetchall():
+            results.append({
+                "query": row[0],
+                "success": bool(row[1]),
+                "error": row[2],
+                "rows_affected": row[3],
+                "timestamp": row[4]
+            })
+        
+        return results
+        
+    except sqlite3.Error as e:
+        print(f"Error fetching query history: {str(e)}")
+        return []
+    finally:
+        close_db_connection(conn)
+
+
+def clear_query_history(username: str) -> bool:
+    """
+    Clear all query history for a user
+    
+    Args:
+        username: Username to clear history for
+        
+    Returns:
+        True if cleared successfully, False otherwise
+    """
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute("""
+            DELETE FROM query_history
+            WHERE username = ?
+        """, (username,))
+        
+        conn.commit()
+        return True
+        
+    except sqlite3.Error as e:
+        print(f"Error clearing query history: {str(e)}")
+        return False
+    finally:
+        close_db_connection(conn)
+
+
 def initialize_database():
     """
     Initialize the database with sample tables and data
@@ -337,6 +443,26 @@ def initialize_database():
                 created_at TEXT NOT NULL,
                 is_active BOOLEAN DEFAULT 1
             );
+        """)
+        
+        # Create query history table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS query_history (
+                history_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username VARCHAR(50) NOT NULL,
+                query TEXT NOT NULL,
+                success BOOLEAN NOT NULL,
+                error TEXT,
+                rows_affected INTEGER,
+                timestamp TEXT NOT NULL,
+                FOREIGN KEY (username) REFERENCES users(username)
+            );
+        """)
+        
+        # Create index on username and timestamp for faster queries
+        cursor.execute("""
+            CREATE INDEX IF NOT EXISTS idx_query_history_username_timestamp 
+            ON query_history(username, timestamp DESC);
         """)
         
         # Check if default admin user exists
@@ -424,6 +550,7 @@ def initialize_database():
         conn.commit()
         print("Database initialized successfully!")
         print("Default admin user created - Username: admin, Password: admin123")
+        print("Query history table created with indexes for optimal performance")
         
     except sqlite3.Error as e:
         print(f"Error initializing database: {str(e)}")
