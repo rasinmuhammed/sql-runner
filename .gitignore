@@ -1,39 +1,53 @@
-# dependencies
-frontend/node_modules
-frontend/.pnp
-frontend/.pnp.*
-frontend/.yarn/*
-frontend/.yarn/patches
-!frontend/.yarn/plugins
-!frontend/.yarn/releases
-!frontend/.yarn/versions
+# Python
+backend/venv/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/*.pyc
+backend/*.pyo
+backend/*.pyd
+backend/.Python
+backend/pip-log.txt
+backend/pip-delete-this-directory.txt
+backend/.pytest_cache/
 
-# testing
-frontend/coverage
+# Database
+backend/sql_runner.db
+backend/*.db
+*.db-journal
 
-# next.js
+# Node.js
+frontend/node_modules/
 frontend/.next/
 frontend/out/
+frontend/build/
+frontend/.pnp/
+frontend/.pnp.js
+frontend/.yarn/
 
-# production
-frontend/build
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
-# misc
-frontend/.DS_Store
-frontend/*.pem
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 
-# debug
-frontend/npm-debug.log*
-frontend/yarn-debug.log*
-frontend/yarn-error.log*
-frontend/.pnpm-debug.log*
+# OS
+.DS_Store
+Thumbs.db
+*.log
 
-# env files (can opt-in for committing if needed)
-frontend/.env*
+# Docker
+docker-compose.override.yml
 
-# vercel
-frontend/.vercel
-
-# typescript
-frontend/*.tsbuildinfo
-frontend/next-env.d.ts
+# Misc
+*.zip
+*.tar.gz
+dist/
+temp/
