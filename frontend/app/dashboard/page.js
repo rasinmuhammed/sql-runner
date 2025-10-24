@@ -120,55 +120,57 @@ export default function DashboardPage() {
         } rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-4000`}></div>
       </div>
 
-      {/* Header */}
+    {  /* Header */}
       <header className={`${
         theme === 'dark' 
           ? 'bg-gray-900/50 border-gray-700/50' 
           : 'bg-white/50 border-gray-200'
       } backdrop-blur-xl border-b sticky top-0 z-50 transition-colors duration-300`}>
-        <div className="px-3 sm:px-6 py-3 sm:py-4">
+        <div className="px-4 sm:px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 sm:gap-4 min-w-0 flex-1">
+            {/* Left Section - Logo & Title */}
+            <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
               <button
                 onClick={toggleTablesSidebar}
-                className={`p-1.5 sm:p-2 rounded-lg flex-shrink-0 ${
+                className={`p-2 rounded-lg flex-shrink-0 ${
                   theme === 'dark'
                     ? 'hover:bg-white/10 text-white'
                     : 'hover:bg-gray-100 text-gray-700'
                 } transition-all duration-200 hover:scale-105 active:scale-95`}
                 title={showTablesSidebar ? 'Hide tables' : 'Show tables'}
               >
-                {showTablesSidebar ? <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" /> : <LayoutDashboard className="w-4 h-4 sm:w-5 sm:h-5" />}
+                {showTablesSidebar ? <ChevronLeft className="w-5 h-5" /> : <LayoutDashboard className="w-5 h-5" />}
               </button>
               
-              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-                <div className="p-1.5 sm:p-2 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg sm:rounded-xl shadow-lg flex-shrink-0">
-                  <Database className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="p-2.5 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl shadow-lg flex-shrink-0">
+                  <Database className="w-6 h-6 text-white" />
                 </div>
                 <div className="min-w-0">
-                  <div className="flex items-center gap-1 sm:gap-2">
-                    <h1 className={`text-sm sm:text-xl font-bold truncate ${
+                  <div className="flex items-center gap-2">
+                    <h1 className={`text-xl sm:text-2xl font-bold truncate ${
                       theme === 'dark' ? 'text-white' : 'text-gray-900'
                     }`}>
                       SQL Runner
                     </h1>
-                    <Sparkles className={`w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0 ${
+                    <Sparkles className={`w-4 h-4 flex-shrink-0 ${
                       theme === 'dark' ? 'text-violet-400' : 'text-violet-600'
                     } animate-pulse`} />
                   </div>
-                  <p className={`text-[10px] sm:text-sm truncate ${
+                  <p className={`text-xs sm:text-sm mt-0.5 ${
                     theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
                   }`}>
-                    <span className="hidden xs:inline">Welcome, </span><span className="font-semibold">Welcome, {username}</span>
+                    Execute queries, explore data, build amazing things
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-1 sm:gap-3 flex-shrink-0">
+            {/* Right Section - Actions */}
+            <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
               <button
                 onClick={toggleHistory}
-                className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 border text-xs sm:text-sm ${
+                className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 border text-sm font-medium ${
                   showHistory
                     ? theme === 'dark'
                       ? 'bg-violet-500/20 border-violet-500/50 text-white shadow-lg'
@@ -179,27 +181,37 @@ export default function DashboardPage() {
                 }`}
                 title={showHistory ? 'Hide history' : 'Show history'}
               >
-                {showHistory ? <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" /> : <History className="w-3 h-3 sm:w-4 sm:h-4" />}
-                <span className="hidden xs:inline font-medium">History</span>
+                {showHistory ? <ChevronRight className="w-4 h-4" /> : <History className="w-4 h-4" />}
+                <span className="hidden sm:inline">History</span>
               </button>
 
-              <div className="hidden xs:block">
-                <ThemeToggle />
-              </div>
+              <ThemeToggle />
 
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl text-xs sm:text-sm font-medium"
+                className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-black hover:bg-red-600 text-white rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl text-sm font-medium"
               >
-                <LogOut className="w-3 h-3 sm:w-4 sm:h-4" />
-                <span className="hidden xs:inline">Logout</span>
+                <LogOut className="w-4 h-4" />
+                <span className="hidden sm:inline">Logout</span>
               </button>
             </div>
           </div>
 
-          {/* Mobile Theme Toggle Row */}
-          <div className="xs:hidden mt-2 flex justify-end">
-            <ThemeToggle />
+          {/* Welcome Message - Below main header */}
+          <div className={`mt-3 pt-3 border-t ${
+            theme === 'dark' ? 'border-gray-700/50' : 'border-gray-200'
+          }`}>
+            <p className={`text-sm ${
+              theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+            }`}>
+              <span className={`font-semibold ${
+                theme === 'dark' ? 'text-white' : 'text-gray-900'
+              }`}>Welcome back, {username}!</span>
+              {' '}
+              <span className={theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}>
+                Ready to run some powerful queries?
+              </span>
+            </p>
           </div>
         </div>
       </header>
