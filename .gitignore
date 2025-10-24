@@ -11,8 +11,6 @@ backend/pip-delete-this-directory.txt
 backend/.pytest_cache/
 
 # Database
-backend/sql_runner.db
-backend/*.db
 *.db-journal
 
 # Node.js

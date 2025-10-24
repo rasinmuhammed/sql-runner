@@ -104,8 +104,8 @@ export default function DashboardPage() {
   return (
     <div className={`min-h-screen ${
       theme === 'dark' 
-        ? 'bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900' 
-        : 'bg-gradient-to-br from-violet-50 via-purple-50 to-indigo-50'
+        ? 'bg-linear-to-br from-gray-900 via-purple-900 to-violet-900' 
+        : 'bg-linear-to-br from-violet-50 via-purple-50 to-indigo-50'
     } transition-colors duration-300`}>
       {/* Animated background effects */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
@@ -128,11 +128,11 @@ export default function DashboardPage() {
       } backdrop-blur-xl border-b sticky top-0 z-50 transition-colors duration-300`}>
         <div className="px-4 sm:px-6 py-4">
           <div className="flex items-center justify-between">
-            {/* Left Section - Logo & Title */}
+        
             <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
               <button
                 onClick={toggleTablesSidebar}
-                className={`p-2 rounded-lg flex-shrink-0 ${
+                className={`p-2 rounded-lg shrink-0 ${
                   theme === 'dark'
                     ? 'hover:bg-white/10 text-white'
                     : 'hover:bg-gray-100 text-gray-700'
@@ -143,7 +143,7 @@ export default function DashboardPage() {
               </button>
               
               <div className="flex items-center gap-3 min-w-0">
-                <div className="p-2.5 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl shadow-lg flex-shrink-0">
+                <div className="p-2.5 bg-linear-to-br from-violet-500 to-purple-600 rounded-xl shadow-lg shrink-0">
                   <Database className="w-6 h-6 text-white" />
                 </div>
                 <div className="min-w-0">
@@ -153,7 +153,7 @@ export default function DashboardPage() {
                     }`}>
                       SQL Runner
                     </h1>
-                    <Sparkles className={`w-4 h-4 flex-shrink-0 ${
+                    <Sparkles className={`w-4 h-4 shrink-0 ${
                       theme === 'dark' ? 'text-violet-400' : 'text-violet-600'
                     } animate-pulse`} />
                   </div>
@@ -166,8 +166,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Right Section - Actions */}
-            <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
               <button
                 onClick={toggleHistory}
                 className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-lg transition-all duration-200 hover:scale-105 active:scale-95 border text-sm font-medium ${
@@ -197,7 +196,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Welcome Message - Below main header */}
+          {/* Welcome Message  */}
           <div className={`mt-3 pt-3 border-t ${
             theme === 'dark' ? 'border-gray-700/50' : 'border-gray-200'
           }`}>
@@ -218,7 +217,7 @@ export default function DashboardPage() {
 
       {/* Main Content */}
       <div className="flex h-[calc(100vh-73px)] sm:h-[calc(100vh-73px)] relative">
-        {/* Tables Sidebar - Mobile: Overlay, Desktop: Side panel */}
+        {/* Tables Sidebar  */}
         <aside className={`${
           showTablesSidebar ? 'translate-x-0' : '-translate-x-full'
         } fixed lg:relative z-40 h-full w-64 sm:w-80 lg:w-80 transition-all duration-300 ease-in-out ${
@@ -230,7 +229,7 @@ export default function DashboardPage() {
           />
         </aside>
 
-        {/* Main Area - Expands when history is closed */}
+        {/* Main Area  */}
         <main className={`flex-1 overflow-auto relative transition-all duration-300 ${
           !showHistory ? 'lg:mr-0' : ''
         }`}>
@@ -246,7 +245,7 @@ export default function DashboardPage() {
           </div>
         </main>
 
-        {/* Query History Sidebar - Mobile: Overlay, Desktop: Side panel */}
+        {/* Query History Sidebar */}
         <aside className={`${
           showHistory ? 'translate-x-0' : 'translate-x-full'
         } fixed lg:relative z-40 right-0 h-full w-80 sm:w-96 transition-all duration-300 ease-in-out ${

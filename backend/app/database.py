@@ -1,12 +1,15 @@
 import sqlite3
 from typing import List, Dict, Any, Union, Optional
+from dotenv import load_dotenv
 import os
 import re
 from datetime import datetime
 
-# Database configuration
-DATABASE_PATH = os.getenv('DATABASE_PATH', 'sql_runner.db')
+load_dotenv()
 
+# Database configuration
+DATABASE_PATH = os.getenv('DATABASE_PATH', 'backend/sql_runner.db')
+print(f"Database path: {DATABASE_PATH}")
 
 def get_db_connection():
     """Create and return a database connection"""

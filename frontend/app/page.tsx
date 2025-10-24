@@ -18,7 +18,7 @@ export default function Home() {
   }, [router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-violet-900 via-purple-900 to-indigo-900">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-violet-900 via-purple-900 to-indigo-900">
       <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-violet-400"></div>
     </div>
   );

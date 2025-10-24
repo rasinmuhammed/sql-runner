@@ -150,8 +150,8 @@ export default function TablesSidebar({ onTableSelect, refreshTrigger }) {
                   className={`w-full flex items-center justify-between p-2 sm:p-3 rounded-xl transition-all duration-200 ${
                     selectedTable === tableName
                       ? theme === 'dark'
-                        ? 'bg-gradient-to-r from-violet-500/20 to-purple-500/20 border-violet-500/50 shadow-lg'
-                        : 'bg-gradient-to-r from-violet-50 to-purple-50 border-violet-200 shadow-md'
+                        ? 'bg-linear-to-r from-violet-500/20 to-purple-500/20 border-violet-500/50 shadow-lg'
+                        : 'bg-linear-to-r from-violet-50 to-purple-50 border-violet-200 shadow-md'
                       : theme === 'dark'
                       ? 'bg-gray-700/30 hover:bg-gray-700/50 border-transparent hover:border-gray-600/50'
                       : 'bg-white hover:bg-gray-50 border-transparent hover:border-gray-200'
@@ -170,17 +170,17 @@ export default function TablesSidebar({ onTableSelect, refreshTrigger }) {
                     </span>
                   </div>
                   {selectedTable === tableName ? (
-                    <ChevronDown className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform flex-shrink-0 ${
+                    <ChevronDown className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform shrink-0 ${
                       theme === 'dark' ? 'text-violet-400' : 'text-violet-600'
                     }`} />
                   ) : (
-                    <ChevronRight className={`w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0 ${
+                    <ChevronRight className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 ${
                       theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
                     }`} />
                   )}
                 </button>
 
-                {/* Table Details with smooth expand animation and scrollable content */}
+                {/* Table Details */}
                 {selectedTable === tableName && (
                   <div className={`mt-2 ml-1 sm:ml-2 p-2 sm:p-3 rounded-xl border animate-expand max-h-[400px] overflow-y-auto custom-scrollbar ${
                     theme === 'dark'
@@ -213,7 +213,7 @@ export default function TablesSidebar({ onTableSelect, refreshTrigger }) {
                               >
                                 <div className="flex items-center gap-1 sm:gap-2 min-w-0 flex-1">
                                   {column.primary_key && (
-                                    <Key className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-yellow-500 flex-shrink-0" title="Primary Key" />
+                                    <Key className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-yellow-500 shrink-0" title="Primary Key" />
                                   )}
                                   <span className={`font-mono font-medium truncate ${
                                     theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
@@ -221,12 +221,12 @@ export default function TablesSidebar({ onTableSelect, refreshTrigger }) {
                                     {column.name}
                                   </span>
                                   {column.notnull && (
-                                    <span className="text-[8px] sm:text-[10px] px-1 rounded bg-orange-500/20 text-orange-500 whitespace-nowrap flex-shrink-0">
+                                    <span className="text-[8px] sm:text-[10px] px-1 rounded bg-orange-500/20 text-orange-500 whitespace-nowrap shrink-0">
                                       NOT NULL
                                     </span>
                                   )}
                                 </div>
-                                <span className={`font-mono text-[10px] sm:text-xs font-semibold ml-2 flex-shrink-0 ${
+                                <span className={`font-mono text-[10px] sm:text-xs font-semibold ml-2 shrink-0 ${
                                   column.type.toUpperCase().includes('INT') ? 'text-blue-500' :
                                   column.type.toUpperCase().includes('VARCHAR') || column.type.toUpperCase().includes('TEXT') ? 'text-green-500' :
                                   column.type.toUpperCase().includes('DATE') || column.type.toUpperCase().includes('TIME') ? 'text-purple-500' :

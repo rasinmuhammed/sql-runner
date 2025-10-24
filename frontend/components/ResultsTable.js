@@ -17,7 +17,7 @@ export default function ResultsTable({ results }) {
           : 'bg-white/70 border-gray-200'
       } backdrop-blur-xl border rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-6 transition-colors duration-300`}>
         <div className="flex items-start gap-3 sm:gap-4">
-          <div className="p-2 sm:p-3 bg-red-500/20 rounded-lg flex-shrink-0">
+          <div className="p-2 sm:p-3 bg-red-500/20 rounded-lg shrink-0">
             <XCircle className="w-5 h-5 sm:w-6 sm:h-6 text-red-500" />
           </div>
           <div className="flex-1 min-w-0">
@@ -28,7 +28,7 @@ export default function ResultsTable({ results }) {
             </h3>
             <p className={`${
               theme === 'dark' ? 'text-red-300' : 'text-red-600'
-            } font-mono text-xs sm:text-sm break-words`}>
+            } font-mono text-xs sm:text-sm wrap-break-word`}>
               {results.error}
             </p>
           </div>
@@ -46,7 +46,7 @@ export default function ResultsTable({ results }) {
           : 'bg-white/70 border-gray-200'
       } backdrop-blur-xl border rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-6 transition-colors duration-300`}>
         <div className="flex items-start gap-3 sm:gap-4">
-          <div className="p-2 sm:p-3 bg-yellow-500/20 rounded-lg flex-shrink-0">
+          <div className="p-2 sm:p-3 bg-yellow-500/20 rounded-lg shrink-0">
             <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-500" />
           </div>
           <div className="flex-1">
@@ -175,7 +175,7 @@ export default function ResultsTable({ results }) {
             <div className="space-y-2">
               {columns.map((column, colIndex) => (
                 <div key={colIndex} className="flex justify-between items-start gap-2">
-                  <span className={`text-xs font-semibold uppercase tracking-wider flex-shrink-0 ${
+                  <span className={`text-xs font-semibold uppercase tracking-wider shrink-0 ${
                     theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
                   }`}>
                     {column}:

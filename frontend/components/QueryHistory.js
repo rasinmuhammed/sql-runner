@@ -112,7 +112,7 @@ export default function QueryHistory({ onClose, onQuerySelect, refresh }) {
         : 'bg-white/70 border-gray-200'
     } backdrop-blur-xl border-l transition-colors duration-300`}>
       {/* Header */}
-      <div className={`flex-shrink-0 px-6 py-4 border-b ${
+      <div className={`shrink-0 px-6 py-4 border-b ${
         theme === 'dark' ? 'border-gray-700/50' : 'border-gray-200'
       }`}>
         <div className="flex items-center justify-between mb-3">
@@ -244,9 +244,9 @@ export default function QueryHistory({ onClose, onQuerySelect, refresh }) {
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex items-center gap-2">
                     {item.success ? (
-                      <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+                      <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
                     ) : (
-                      <XCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
+                      <XCircle className="w-4 h-4 text-red-500 shrink-0" />
                     )}
                     <div>
                       <span className={`text-xs font-medium ${
@@ -279,7 +279,7 @@ export default function QueryHistory({ onClose, onQuerySelect, refresh }) {
                   </button>
                 </div>
 
-                <pre className={`text-xs font-mono whitespace-pre-wrap break-words mb-2 ${
+                <pre className={`text-xs font-mono whitespace-pre-wrap wrap-break-word mb-2 ${
                   theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
                 }`}>
                   {item.query}
